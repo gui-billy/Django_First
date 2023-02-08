@@ -1,0 +1,75 @@
+###############################################################################
+# Replace
+# sitedjango to the name of the gunicorn file you want
+# guilh to your user name
+# app_repo to the folder name of your project
+# project to the folder name where you find a file called wsgi.py
+#
+###############################################################################
+# Criando o arquivo sitedjango.socket
+sudo nano /etc/systemd/system/sitedjango.socket
+
+###############################################################################
+# Conteúdo do arquivo
+[Unit]
+Description=gunicorn blog socket
+
+[Socket]
+ListenStream=/run/sitedjango.socket
+
+[Install]
+WantedBy=sockets.target
+
+###############################################################################
+# Criando o arquivo sitedjango.service
+sudo nano /etc/systemd/system/sitedjango.service
+
+###############################################################################
+# Conteúdo do arquivo
+[Unit]
+Description=Gunicorn daemon (You can change if you want)
+Requires=sitedjango.socket
+After=network.target
+
+[Service]
+User=guilh
+Group=www-data
+Restart=on-failure
+EnvironmentFile=/home/guilh/app_repo/.env
+WorkingDirectory=/home/guilh/app_repo
+# --error-logfile --enable-stdio-inheritance --log-level and --capture-output
+# are all for debugging purposes.
+ExecStart=/home/guilh/app_repo/venv/bin/gunicorn \
+          --error-logfile /home/guilh/app_repo/gunicorn-error-log \
+          --enable-stdio-inheritance \
+          --log-level "debug" \
+          --capture-output \
+          --access-logfile - \
+          --workers 6 \
+          --bind unix:/run/sitedjango.socket \
+          project.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+
+###############################################################################
+# Ativando
+sudo systemctl start sitedjango.socket
+sudo systemctl enable sitedjango.socket
+
+# Checando
+sudo systemctl status sitedjango.socket
+curl --unix-socket /run/sitedjango.socket localhost
+sudo systemctl status sitedjango
+
+# Restarting
+sudo systemctl restart sitedjango.service
+sudo systemctl restart sitedjango.socket
+sudo systemctl restart sitedjango
+
+# After changing something
+sudo systemctl daemon-reload
+
+# Debugging
+sudo journalctl -u sitedjango.service
+sudo journalctl -u sitedjango.socket
