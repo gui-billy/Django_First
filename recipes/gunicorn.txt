@@ -35,7 +35,7 @@ After=network.target
 User=guilh
 Group=www-data
 Restart=on-failure
-EnvironmentFile=/home/guilh/app_repo/.env
+EnvironmentFile=/home/guilh/app_repo/.venv
 WorkingDirectory=/home/guilh/app_repo
 # --error-logfile --enable-stdio-inheritance --log-level and --capture-output
 # are all for debugging purposes.
@@ -60,7 +60,7 @@ sudo systemctl enable sitedjango.socket
 # Checando
 sudo systemctl status sitedjango.socket
 curl --unix-socket /run/sitedjango.socket localhost
-sudo systemctl status sitedjango
+
 
 # Restarting
 sudo systemctl restart sitedjango.service
